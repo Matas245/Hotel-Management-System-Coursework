@@ -1,50 +1,24 @@
 # Hotel Management System — OOP Coursework Report
 
-**Course:** Object-Oriented Programming  
-**Topic:** Hotel Management System  
-**Language:** Python  
-
----
-
-## Table of Contents
-
-1. [Introduction](#introduction)
-2. [Body / Analysis](#body--analysis)
-3. [Results and Summary](#results-and-summary)
-4. [Resources](#resources)
-
 ---
 
 ## Introduction
 
 ### What is this application?
 
-This coursework project is a Hotel Management System built in Python using the CustomTkinter GUI framework. The goal of the application is to demonstrate practical use of Object-Oriented Programming principles — including all four OOP pillars, a design pattern, composition and aggregation, file persistence, and unit testing — through a realistic, functional program.
+A Hotel Management System built in Python using CustomTkinter. It covers all four OOP pillars, a design pattern, composition and aggregation, file persistence, and unit testing through a working GUI application.
 
-The system allows a hotel to manage its rooms, registered guests, and bookings through a graphical interface. It also provides a billing overview that calculates the total revenue from all active bookings.
+The system manages rooms, guests, and bookings, with a billing overview calculating total revenue.
 
 ### How to run the program
 
-**Requirements:**
-
-- Python 3.10 or higher
-- CustomTkinter library
-
-**Installation:**
-
-```
-pip install customtkinter
-```
-
-**Running the application:**
-
-Navigate to the project root directory and run:
+**Requirements:** Python 3.10+
 
 ```
 python main.py
 ```
 
-**Running the tests:**
+**Tests:**
 
 ```
 python -m unittest tests/test_hotel.py -v
@@ -52,17 +26,17 @@ python -m unittest tests/test_hotel.py -v
 
 ### How to use the program
 
-The application opens with a sidebar on the left containing four navigation sections: Rooms, Guests, Bookings, and Billing. At the bottom of the sidebar there are Save and Load buttons for persisting data between sessions.
+The sidebar has four sections — Rooms, Guests, Bookings, Billing — with Save/Load buttons at the bottom.
 
-**Rooms** — Click "Add Room" to open a configuration panel. Select a room type (Single, Double, or Suite) and enter a room number. Click Apply to confirm. Existing rooms can be edited or removed from the list.
+**Rooms** — Add, edit, or remove rooms. Choose a type (Single, Double, Suite) and enter a room number.
 
-**Guests** — Click "Add Guest" to register a new guest with a name, ID, and email address. Guests can be edited or removed. Removing a guest will automatically cancel any bookings associated with them.
+**Guests** — Register guests with a name, ID, and email. Removing a guest automatically cancels their bookings.
 
-**Bookings** — Click "Add Booking" to create a reservation. Select a guest and a room from the dropdowns, choose a check-in date using the date picker, and enter the number of nights. The system validates that the selected room is not already booked for the requested period and shows an estimated total before confirming. Bookings can be searched by guest name or room number.
+**Bookings** — Pick a guest, room, check-in date, and number of nights. The system checks for overlapping bookings and shows the total before confirming. Searchable by guest name or room number.
 
-**Billing** — Displays a live summary of total bookings, total revenue, and occupied room count, followed by a line-by-line breakdown of each booking and its cost.
+**Billing** — Shows total bookings, revenue, and occupied rooms, with a per-booking cost breakdown.
 
-**Save / Load** — The Save button writes all current rooms, guests, and bookings to CSV files in the `data/` folder. The Load button reads those files and restores the previous session state.
+**Save / Load** — Saves/loads all data to CSV files in `data/`.
 
 ---
 
@@ -72,7 +46,7 @@ The application opens with a sidebar on the left containing four navigation sect
 
 #### Abstraction
 
-Abstraction means hiding implementation details behind a common interface, exposing only what is necessary. In this project, the `Room` class is defined as an abstract base class using Python's `abc` module. It declares two abstract methods — `get_room_type()` and `calculate_price()` — which every concrete room subclass must implement. The `Room` class itself cannot be instantiated directly.
+`Room` is an abstract base class with two abstract methods — `get_room_type()` and `calculate_price()`. It cannot be instantiated directly; all concrete room types must implement these methods.
 
 ```python
 from abc import ABC, abstractmethod
@@ -92,11 +66,9 @@ class Room(ABC):
         pass
 ```
 
-Any code that works with a room only needs to call `calculate_price()` — it does not need to know which subclass it is dealing with or how the price is computed internally.
-
 #### Inheritance
 
-Inheritance allows a class to derive behaviour and attributes from a parent class, extending or overriding them as needed. The three room types — `SingleRoom`, `DoubleRoom`, and `SuiteRoom` — all inherit from the abstract `Room` base class. Each subclass calls `super().__init__()` to set up the shared attributes and then implements the abstract methods with its own logic.
+`SingleRoom`, `DoubleRoom`, and `SuiteRoom` all inherit from `Room`, call `super().__init__()` for shared setup, and implement their own pricing logic.
 
 ```python
 class SingleRoom(Room):
@@ -122,22 +94,20 @@ class SuiteRoom(Room):
         return (self._base_price * nights) + service_fee
 ```
 
-This avoids duplicating the shared room logic while still allowing each type to behave differently.
-
 #### Polymorphism
 
-Polymorphism means that the same method call can produce different behaviour depending on the object it is called on. Because all three room types implement `calculate_price()`, the `Hotel` class and the `Booking` class can call this method on any room without knowing its specific type. The correct version is resolved at runtime.
+All room types implement `calculate_price()`, so `Hotel` and `Booking` can call it on any room without knowing its type.
 
 ```python
 def get_total_revenue(self):
     return sum(b.calculate_total() for b in self._bookings)
 ```
 
-`calculate_total()` on a `Booking` calls `self._room.calculate_price(self._nights)`. Whether that room is a `SingleRoom`, `DoubleRoom`, or `SuiteRoom` is irrelevant — the right method is called automatically. This is also visible in the billing frame, where every booking's cost is displayed using the same call regardless of room type.
+`calculate_total()` calls `self._room.calculate_price(self._nights)` — the correct version is resolved at runtime regardless of room type.
 
 #### Encapsulation
 
-Encapsulation means keeping an object's internal state private and controlling access through defined interfaces. Throughout the project, all instance attributes are prefixed with a single underscore to mark them as protected. In the `Guest` class, attributes are exposed through Python property decorators that include validation logic, preventing invalid data from ever entering the object.
+All instance attributes use a `_` prefix. The `Guest` class exposes them through property decorators with validation.
 
 ```python
 class Guest:
@@ -157,13 +127,13 @@ class Guest:
         self._email = value.strip()
 ```
 
-The same pattern is used across `Room`, `Booking`, and `Hotel` — internal lists and values are never exposed directly for external modification.
+The same pattern is used across `Room`, `Booking`, and `Hotel`.
 
 ---
 
 ### 2. Design Pattern — Factory Method
 
-The Factory Method pattern centralises object creation behind a dedicated method, so that the calling code does not need to know which specific class to instantiate. Instead of writing `SingleRoom(number)` or `SuiteRoom(number)` directly throughout the codebase, all room creation is routed through `RoomFactory.create_room()`.
+All room creation goes through `RoomFactory.create_room()` rather than instantiating subclasses directly.
 
 ```python
 class RoomFactory:
@@ -179,9 +149,9 @@ class RoomFactory:
             raise ValueError(f"Unknown room type: {room_type}")
 ```
 
-This pattern fits the project because room creation happens in multiple places — the GUI when a user adds a room, and the `FileManager` when loading saved data. In both cases, they call `RoomFactory.create_room()` with a type string and a room number. If a new room type were added in the future, only the factory would need updating, not every location that creates rooms.
+Both the GUI and `FileManager` use this factory, so adding a new room type only requires updating one place.
 
-The Singleton pattern was considered but rejected — there is no need to restrict instantiation of any class to a single instance. The Decorator pattern was also considered for adding extra charges to rooms, but since the price logic is simple and clearly defined per type, it would have added unnecessary complexity.
+The Singleton and Decorator patterns were considered but rejected — neither fit the project's needs without adding unnecessary complexity.
 
 ---
 
@@ -189,7 +159,7 @@ The Singleton pattern was considered but rejected — there is no need to restri
 
 #### Aggregation
 
-Aggregation is a relationship where one object holds references to other objects that exist independently of it. In this project, the `Booking` class holds a reference to a `Guest` and a `Room`, but neither is created by the `Booking` — they are passed in from outside and continue to exist if the booking is cancelled or deleted.
+`Booking` holds references to a `Guest` and a `Room` that are passed in from outside. Cancelling a booking frees the room, but both the guest and room remain in the system.
 
 ```python
 class Booking:
@@ -201,11 +171,9 @@ class Booking:
         self._room.is_occupied = True
 ```
 
-The `Guest` and `Room` objects are not owned by the `Booking`. Cancelling a booking frees the room and removes the booking, but the guest and room remain registered in the system.
-
 #### Composition
 
-Composition is a stronger relationship where one object owns and manages the lifecycle of its parts. The `Hotel` class is responsible for creating and managing the collections of rooms, guests, and bookings. These lists are created inside `Hotel.__init__()` and are entirely managed through the hotel's own methods.
+`Hotel` owns and manages its collections of rooms, guests, and bookings — all created inside `__init__()`.
 
 ```python
 class Hotel:
@@ -216,15 +184,13 @@ class Hotel:
         self._bookings = []
 ```
 
-When a room or guest is removed through the `Hotel` class, it also cascades to cancel any related bookings, enforcing data integrity from a single point of control. The `Hotel` owns its data — if the hotel instance is discarded, all of its data goes with it.
+Removing a room or guest cascades to cancel related bookings. If the `Hotel` instance is discarded, all data goes with it.
 
 ---
 
 ### 4. File Read and Write
 
-Data persistence is handled by the `FileManager` class in `storage/file_manager.py`. It reads and writes three CSV files: `rooms.csv`, `guests.csv`, and `bookings.csv`, stored in a `data/` directory that is created automatically if it does not exist.
-
-The `save()` method serialises each collection to its respective file:
+`FileManager` in `storage/file_manager.py` handles saving and loading three CSV files — `rooms.csv`, `guests.csv`, `bookings.csv` — in a `data/` directory that's created automatically.
 
 ```python
 @staticmethod
@@ -236,7 +202,7 @@ def _save_bookings(bookings):
             writer.writerow([b.booking_id, b.guest.guest_id, b.room.room_number, b.check_in_date, b.nights])
 ```
 
-The `load()` method reads back each file and reconstructs the objects. Bookings are loaded last because they depend on guest and room objects already existing in memory. The loading resolves foreign key references by matching `guest_id` and `room_number` to the already-loaded objects:
+Bookings are loaded last since they depend on guests and rooms already being in memory. References are resolved by matching IDs:
 
 ```python
 guest = next((g for g in hotel.guests if g.guest_id == row["guest_id"]), None)
@@ -247,13 +213,11 @@ if guest and room:
     hotel.add_booking(b)
 ```
 
-The original booking ID is restored from the file to preserve continuity across sessions. Save and Load buttons are always visible at the bottom of the sidebar in the application.
-
 ---
 
 ### 5. Unit Testing
 
-Unit tests are written using Python's built-in `unittest` framework and are located in `tests/test_hotel.py`. Tests cover all core business logic without touching the GUI layer. There are 32 tests across 6 test classes.
+Tests are in `tests/test_hotel.py` using Python's `unittest` framework. 32 tests across 6 classes, all covering business logic only — no GUI layer.
 
 ```
 TestRoomTypes     — price calculations, occupied status, room type strings
@@ -264,7 +228,7 @@ TestHotel         — add/remove logic, cascading cancellation, revenue calculat
 TestFileManager   — CSV save and load round-trip, missing file handling
 ```
 
-An example test that verifies the Suite room's service fee is applied correctly:
+Example test:
 
 ```python
 def test_suite_room_price_includes_service_fee(self):
@@ -272,7 +236,7 @@ def test_suite_room_price_includes_service_fee(self):
     self.assertEqual(room.calculate_price(2), 550.0)
 ```
 
-The `FileManager` tests use a temporary subdirectory and restore the original file paths in `tearDown()` to avoid interfering with real data:
+`FileManager` tests use a temporary directory and clean up in `tearDown()`:
 
 ```python
 def tearDown(self):
@@ -285,7 +249,7 @@ def tearDown(self):
     FileManager.BOOKINGS_FILE = "data/bookings.csv"
 ```
 
-All 32 tests pass successfully.
+All 32 tests pass.
 
 ---
 
@@ -293,19 +257,17 @@ All 32 tests pass successfully.
 
 ### Results
 
-- A fully functional Hotel Management System was implemented in Python with a CustomTkinter graphical interface, covering all four management areas: rooms, guests, bookings, and billing.
-- All four OOP pillars were applied in a meaningful and non-superficial way — abstraction and inheritance through the room class hierarchy, polymorphism through runtime method dispatch, and encapsulation through protected attributes and property validation.
-- The Factory Method design pattern was successfully integrated into both the GUI and the file loading process, eliminating direct subclass references from the calling code and making the room creation logic easy to extend.
-- One of the more technically interesting challenges was designing the booking overlap detection — ensuring that a room cannot be double-booked required comparing date ranges rather than just checking an `is_occupied` flag, since multiple bookings for the same room at different times are valid.
-- Separating the GUI layer entirely from the business logic proved to be a significant structural decision. Passing a shared `Hotel` instance into every frame meant that all data mutations happen through a single object, which made the file save and load operations straightforward to implement.
+- Fully functional Hotel Management System with a CustomTkinter GUI covering rooms, guests, bookings, and billing.
+- All four OOP pillars applied meaningfully — abstraction and inheritance through the room hierarchy, polymorphism through runtime dispatch, encapsulation through property validation.
+- Factory Method pattern used in both the GUI and file loader, keeping subclass references out of calling code.
+- Booking overlap detection compares date ranges rather than just an `is_occupied` flag, since a room can have multiple valid bookings at different times.
+- A single shared `Hotel` instance passed into every GUI frame keeps all data mutations centralised, making save/load straightforward.
 
 ### Conclusions
 
-This coursework produced a working, structured Hotel Management System that demonstrates Object-Oriented Programming concepts through practical application rather than isolated examples. The program is usable — a user can open the application, add rooms and guests, make bookings, review billing, and save their session to disk.
+The project produces a working Hotel Management System that applies OOP through a real program rather than isolated examples. Splitting models, storage, and GUI into separate modules made the code easier to test and debug.
 
-The result confirms that OOP principles are not just academic constructs but genuinely useful tools for organising a codebase. The separation of models, services, storage, and GUI into distinct modules made the project easier to navigate, test, and debug.
-
-Looking forward, the application could be extended in several directions. Room pricing could be made dynamic with seasonal rates or discount logic added to the factory. The booking system could be expanded to include check-out tracking and invoice generation as PDF exports. User authentication could be added to support multiple staff members with different permission levels. The CSV persistence layer could be replaced with a SQLite database with minimal changes to the rest of the architecture, since the `FileManager` class is already fully isolated from the rest of the system.
+Possible extensions: dynamic room pricing, check-out tracking, PDF invoices, user authentication, or swapping the CSV layer for SQLite — which would be straightforward since `FileManager` is already isolated from the rest of the system.
 
 ---
 

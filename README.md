@@ -32,7 +32,7 @@ The sidebar has four sections — Rooms, Guests, Bookings, Billing — with Save
 
 **Guests** — Register guests with a name, ID, and email. Removing a guest automatically cancels their bookings.
 
-**Bookings** — Pick a guest, room, check-in date, and number of nights. The system checks for overlapping bookings and shows the total before confirming. Searchable by guest name or room number.
+**Bookings** — Pick a guest, room, check-in date, and number of nights. The system checks for overlapping bookings and shows the estimated total before confirming.
 
 **Billing** — Shows total bookings, revenue, and occupied rooms, with a per-booking cost breakdown.
 
@@ -217,15 +217,15 @@ if guest and room:
 
 ### 5. Unit Testing
 
-Tests are in `tests/test_hotel.py` using Python's `unittest` framework. 32 tests across 6 classes, all covering business logic only — no GUI layer.
+Tests are in `tests/test_hotel.py` using Python's `unittest` framework. 16 tests across 6 classes, all covering business logic only — no GUI layer.
 
 ```
-TestRoomTypes     — price calculations, occupied status, room type strings
+TestRoomTypes     — price calculations and room type strings
 TestRoomFactory   — correct class returned per type, invalid type handling
-TestGuest         — validation logic for name, ID, and email
-TestBooking       — creation, room occupation, cancellation, total calculation
-TestHotel         — add/remove logic, cascading cancellation, revenue calculation
-TestFileManager   — CSV save and load round-trip, missing file handling
+TestGuest         — validation logic for name and email
+TestBooking       — room occupation, cancellation, total calculation
+TestHotel         — cascading cancellation, revenue and occupied count
+TestFileManager   — CSV save/load round-trip, missing file handling
 ```
 
 Example test:
@@ -249,7 +249,7 @@ def tearDown(self):
     FileManager.BOOKINGS_FILE = "data/bookings.csv"
 ```
 
-All 32 tests pass.
+All 16 tests pass.
 
 ---
 

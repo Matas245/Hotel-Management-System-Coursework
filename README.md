@@ -1,4 +1,4 @@
-# Hotel Management System — OOP Coursework Report
+# Hotel Management System
 
 ---
 

@@ -14,12 +14,17 @@ The system manages rooms, guests, and bookings, with a billing overview calculat
 
 **Requirements:** Python 3.10+
 
+**1. Install dependencies:**
+```
+pip install -r requirements.txt
+```
+
+**2. Run the program:**
 ```
 python main.py
 ```
 
-**Tests:**
-
+**Run tests:**
 ```
 python -m unittest tests/test_hotel.py -v
 ```
